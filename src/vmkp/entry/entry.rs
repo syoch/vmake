@@ -18,4 +18,17 @@ impl Entry {
             data,
         }
     }
+
+    pub fn resolve_entry(&self, inode: u64) -> Option<&Entry> {
+        if let EntryData::Folder(entries) = &self.data {
+            for entry in entries {
+                if entry.inode == inode {
+                    return Some(entry);
+                }
+            }
+            return None;
+        } else {
+            return None;
+        }
+    }
 }
