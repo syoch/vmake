@@ -1,0 +1,22 @@
+File
+  type: 0x00
+  name: string_with_length
+  mtime: u64
+
+  data: bytes_with_length
+
+Folder
+  type: 0x01
+  name: string_with_length
+  mtime: u64
+
+  entries_count: VarInt
+  entries: Entry[]
+
+RemoteResource
+  type: 0x02
+  name: string_with_length
+  mtime: u64
+
+  href: string_with_length
+

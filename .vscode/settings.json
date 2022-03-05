@@ -1,0 +1,9 @@
+{
+  "saveAndRun": {
+    "commands": [
+      {
+        "cmd": "RUST_LOG=debug cargo run; fusermount -u vmkp  "
+      }
+    ]
+  }
+}
