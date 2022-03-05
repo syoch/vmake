@@ -2,7 +2,7 @@
   "saveAndRun": {
     "commands": [
       {
-        "cmd": "RUST_LOG=debug cargo run; fusermount -u vmkp  "
+        "cmd": "RUST_LOG=debug fusermount -u vmkp; cargo run"
       }
     ]
   }
