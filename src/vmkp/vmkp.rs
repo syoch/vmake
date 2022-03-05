@@ -6,7 +6,7 @@ use std::io::Read;
 
 #[derive(Debug)]
 pub struct Vmkp {
-    root: Entry,
+    pub root: Entry,
 }
 
 impl Vmkp {

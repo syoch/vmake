@@ -1,7 +1,7 @@
 mod vmkp;
 
-use fuse::{FileAttr, Filesystem};
-// use time::Timespec;
+use fuse::*;
+use time::Timespec;
 
 struct FSEntry {
     inode: u64,
@@ -14,21 +14,21 @@ struct FSEntry {
     data: Vec<u8>,
 }
 
-// const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
+const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 impl Filesystem for vmkp::Vmkp {
-    // fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
-    //     match self.entries.get(&ino) {
-    //         Some(x) => {
-    //             reply.attr(&TTL, &x.attr);
-    //             return;
-    //         }
-    //         None => {
-    //             reply.error(libc::ENOENT);
-    //             return;
-    //         }
-    //     };
-    // }
+    fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
+        match self.root.resolve_entry(ino) {
+            Some(x) => {
+                reply.attr(&TTL, &x.attr);
+                return;
+            }
+            None => {
+                reply.error(libc::ENOENT);
+                return;
+            }
+        };
+    }
     // fn readdir(
     //     &mut self,
     //     _req: &fuse::Request,
@@ -38,16 +38,11 @@ impl Filesystem for vmkp::Vmkp {
     //     mut reply: fuse::ReplyDirectory,
     // ) {
     //     if offset == 0 {
-    //         let ent = self.get_entry(ino).unwrap();
-    //         for child in ent.children.clone() {
-    //             println!("{}", child);
-    //             let child_ent = self.get_entry(child).unwrap();
-    //             reply.add(
-    //                 child_ent.inode,
-    //                 0,
-    //                 fuse::FileType::RegularFile,
-    //                 &child_ent.name,
-    //             );
+    //         let ent = self.root.resolve_entry(ino).unwrap();
+    //         if let EntryData::Folder(entries) = &ent.data {
+    //             for entry in entries {
+    //                 reply.add(entry.inode, &entry.name, &entry.attr, &entry.name);
+    //             }
     //         }
     //     }
     //     reply.ok();

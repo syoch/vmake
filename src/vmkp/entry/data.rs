@@ -1,6 +1,6 @@
 use super::entry::Entry;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum EntryData {
     File(Vec<u8>),
     Folder(Vec<Entry>),
