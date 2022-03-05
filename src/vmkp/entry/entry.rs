@@ -1,7 +1,6 @@
 use super::data::EntryData;
 use fuse::FileAttr;
 use fuse::FileType;
-use time::Timespec;
 
 #[derive(Debug)]
 pub struct Entry {
@@ -12,9 +11,6 @@ pub struct Entry {
 }
 
 impl Entry {
-    pub fn fully_new(name: String, attr: FileAttr, data: EntryData) -> Entry {
-        Entry { name, attr, data }
-    }
     pub fn new(name: String, inode: u64, mtime: u64, data: EntryData) -> Entry {
         let kind = match data {
             EntryData::File(_) => FileType::RegularFile,

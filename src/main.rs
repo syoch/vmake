@@ -2,6 +2,7 @@ mod vmkp;
 
 use fuse::*;
 use time::Timespec;
+use vmkp::entry::EntryData;
 
 struct FSEntry {
     inode: u64,
@@ -29,24 +30,24 @@ impl Filesystem for vmkp::Vmkp {
             }
         };
     }
-    // fn readdir(
-    //     &mut self,
-    //     _req: &fuse::Request,
-    //     ino: u64,
-    //     fh: u64,
-    //     offset: i64,
-    //     mut reply: fuse::ReplyDirectory,
-    // ) {
-    //     if offset == 0 {
-    //         let ent = self.root.resolve_entry(ino).unwrap();
-    //         if let EntryData::Folder(entries) = &ent.data {
-    //             for entry in entries {
-    //                 reply.add(entry.inode, &entry.name, &entry.attr, &entry.name);
-    //             }
-    //         }
-    //     }
-    //     reply.ok();
-    // }
+    fn readdir(
+        &mut self,
+        _req: &fuse::Request,
+        ino: u64,
+        _fh: u64,
+        offset: i64,
+        mut reply: fuse::ReplyDirectory,
+    ) {
+        if offset == 0 {
+            let ent = self.root.resolve_entry(ino).unwrap();
+            if let EntryData::Folder(entries) = &ent.data {
+                for entry in entries {
+                    reply.add(entry.attr.ino, 0, entry.attr.kind, &entry.name);
+                }
+            }
+        }
+        reply.ok();
+    }
 }
 
 fn main() {
