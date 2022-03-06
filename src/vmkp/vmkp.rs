@@ -23,7 +23,7 @@ impl Vmkp {
 pub fn read_vmkp(input: &[u8]) -> IResult<&[u8], Entry> {
     let (input, _) = tag("vmkp")(input)?;
 
-    let (input, (_, entry)) = entry(1, input)?;
+    let (input, (_, entry)) = entry(0, 1, input)?;
 
     Ok((input, entry))
 }

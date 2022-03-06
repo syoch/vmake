@@ -1,20 +1,37 @@
 mod vmkp;
 
-use std::os::raw::c_int;
+use std::{ffi::OsStr, os::raw::c_int};
 
 use fuse::*;
 use time::Timespec;
 use vmkp::entry::EntryData;
+use vmkp::Vmkp;
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
-impl Filesystem for vmkp::Vmkp {
+impl Vmkp {
+    // pub fn lookup(&self, name: &OsStr, parent: u64, entry: &Entry) -> Option<Entry> {
+    //     None
+    // }
+}
+
+impl Filesystem for Vmkp {
     fn init(&mut self, _req: &Request) -> Result<(), c_int> {
         println!("Filesystem are");
         println!("{}", self.root);
 
         Ok(())
     }
+    // fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
+    //     let name = name.to_str().unwrap();
+    //     let entry = self.root.lookup(name);
+    //
+    //     if let Some(entry) = entry {
+    //         reply.entry(&TTL, &entry.attr, 0);
+    //     } else {
+    //         reply.error(ENOENT);
+    //     }
+    // }
     fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
         match self.root.resolve_entry(ino) {
             Some(x) => {
@@ -53,6 +70,7 @@ impl Filesystem for vmkp::Vmkp {
 fn main() {
     env_logger::init().expect("Failed to initialize logger");
 
-    let fs = vmkp::vmkp::Vmkp::new();
-    fuse::mount(fs, &"/run/user/1000/vmkp", &[]).expect("Failed to mount filesystem");
+    let fs = Vmkp::new();
+    println!("{}", fs.root);
+    // fuse::mount(fs, &"/run/user/1000/vmkp", &[]).expect("Failed to mount filesystem");
 }

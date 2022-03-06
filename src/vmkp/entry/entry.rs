@@ -13,12 +13,17 @@ pub struct Entry {
     pub name: String,
     pub attr: FileAttr,
 
+    pub parent_inode: u64,
+
     pub data: EntryData,
 }
 
 impl Entry {
     pub fn brief_to_string(&self) -> String {
-        format!("[{} {:?}] '{}'", self.attr.ino, self.attr.kind, self.name)
+        format!(
+            "[{}::{} {:?}] '{}'",
+            self.parent_inode, self.attr.ino, self.attr.kind, self.name
+        )
     }
 
     fn to_string_multiline(&self) -> Vec<String> {
@@ -48,7 +53,7 @@ impl Display for Entry {
 }
 
 impl Entry {
-    pub fn new(name: String, inode: u64, mtime: u64, data: EntryData) -> Entry {
+    pub fn new(name: String, inode: u64, parent_inode: u64, mtime: u64, data: EntryData) -> Entry {
         let kind = match data {
             EntryData::File(_) => FileType::RegularFile,
             EntryData::Folder(_) => FileType::Directory,
@@ -78,6 +83,7 @@ impl Entry {
                 rdev: 0,
                 flags: 0,
             },
+            parent_inode,
             data,
         }
     }
@@ -100,12 +106,18 @@ impl Entry {
     }
 }
 
-pub fn entry(ino: u64, input: &[u8]) -> IResult<&[u8], (u64, Entry)> {
+pub fn entry(parent_inode: u64, ino: u64, input: &[u8]) -> IResult<&[u8], (u64, Entry)> {
     let (input, t) = Type::read(input)?;
     let (input, name) = string(input)?;
     let (input, mtime) = be_u64(input)?;
 
     let (input, (_, entry_data)) = super::data::entry_data(input, ino, t)?;
 
-    Ok((input, (ino + 1, Entry::new(name, ino, mtime, entry_data))))
+    Ok((
+        input,
+        (
+            ino + 1,
+            Entry::new(name, ino, parent_inode, mtime, entry_data),
+        ),
+    ))
 }
