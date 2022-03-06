@@ -3,39 +3,46 @@ use super::data::EntryData;
 use super::entry_type::Type;
 use super::Entry;
 
-use nom::IResult;
+use nom::{HexDisplay, IResult};
 
 fn entry_data(input: &[u8], ino: u64, t: Type) -> IResult<&[u8], (u64, EntryData)> {
-    match t {
+    let mut input = input;
+    let data = match t {
         Type::File => {
-            let (input, size) = varint(input)?;
-            let (input, data) = take(size)(input)?;
+            let (new_input, data) = take_until("\0")(input)?;
+            input = new_input;
+            let (new_input, _) = take(1usize)(input)?;
+            input = new_input;
 
-            Ok((input, (ino + 1, EntryData::new_file(data.to_vec()))))
+            EntryData::new_file(data.to_vec())
         }
 
         Type::Folder => {
-            let (input, entry_count) = varint(input)?;
-
             let mut entries = Vec::new();
             let mut ino = ino + 1;
             let mut input = input;
-            for _ in 0..entry_count {
-                let tmp = entry(ino, input)?;
-                input = tmp.0;
-                ino = tmp.1 .0;
-                entries.push(tmp.1 .1);
+            while !input.starts_with(&[255]) {
+                let (new_input, (next_ino, entry)) = entry(ino, input)?;
+                input = new_input;
+                entries.push(entry);
+                ino = next_ino;
             }
 
-            Ok((input, (ino + 1, EntryData::new_folder(entries))))
+            let (new_input, _) = take(1usize)(input)?;
+            input = new_input;
+
+            EntryData::new_folder(entries)
         }
 
         Type::RemoteResource => {
-            let (input, href) = string(input)?;
+            let (new_input, href) = string(input)?;
+            input = new_input;
 
-            Ok((input, (ino + 1, EntryData::new_remote_resource(href))))
+            EntryData::new_remote_resource(href)
         }
-    }
+    };
+
+    return Ok((input, (ino + 1, data)));
 }
 
 pub fn entry(ino: u64, input: &[u8]) -> IResult<&[u8], (u64, Entry)> {

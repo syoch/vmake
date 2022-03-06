@@ -1,0 +1,23 @@
+File
+  type: 0x00
+  name: zero terminated string
+  mtime: u64
+
+  data: zero terminated bytes
+
+Folder
+  type: 0x01
+  name: zero terminated string
+  mtime: u64
+
+  entries: Entry[]
+
+  terminator: 0xFF
+
+RemoteResource
+  type: 0x02
+  name: zero terminated string
+  mtime: u64
+
+  href: zero terminated string
+
