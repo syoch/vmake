@@ -1,8 +1,12 @@
 use std::fmt::Display;
 
+use super::base_reader::*;
 use super::data::EntryData;
+use super::entry_type::Type;
 use fuse::FileAttr;
 use fuse::FileType;
+
+use nom::IResult;
 
 #[derive(Debug)]
 pub struct Entry {
@@ -77,4 +81,14 @@ impl Entry {
             return None;
         }
     }
+}
+
+pub fn entry(ino: u64, input: &[u8]) -> IResult<&[u8], (u64, Entry)> {
+    let (input, t) = Type::read(input)?;
+    let (input, name) = string(input)?;
+    let (input, mtime) = be_u64(input)?;
+
+    let (input, (_, entry_data)) = super::data::entry_data(input, ino, t)?;
+
+    Ok((input, (ino, Entry::new(name, ino, mtime, entry_data))))
 }
