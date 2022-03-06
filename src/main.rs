@@ -3,17 +3,12 @@ mod vmkp;
 use std::{ffi::OsStr, os::raw::c_int};
 
 use fuse::*;
+use libc::ENOENT;
 use time::Timespec;
 use vmkp::entry::EntryData;
 use vmkp::Vmkp;
 
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
-
-impl Vmkp {
-    // pub fn lookup(&self, name: &OsStr, parent: u64, entry: &Entry) -> Option<Entry> {
-    //     None
-    // }
-}
 
 impl Filesystem for Vmkp {
     fn init(&mut self, _req: &Request) -> Result<(), c_int> {
@@ -22,16 +17,24 @@ impl Filesystem for Vmkp {
 
         Ok(())
     }
-    // fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
-    //     let name = name.to_str().unwrap();
-    //     let entry = self.root.lookup(name);
-    //
-    //     if let Some(entry) = entry {
-    //         reply.entry(&TTL, &entry.attr, 0);
-    //     } else {
-    //         reply.error(ENOENT);
-    //     }
-    // }
+    fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
+        let parent = self.root.resolve_entry(parent);
+
+        if let None = parent {
+            reply.error(ENOENT);
+            return;
+        }
+        let parent = parent.unwrap();
+
+        if let EntryData::Folder(entries) = &parent.data {
+            for entry in entries {
+                if entry.name == name.to_str().unwrap() {
+                    reply.entry(&TTL, &entry.attr, 0);
+                    return;
+                }
+            }
+        }
+    }
     fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
         match self.root.resolve_entry(ino) {
             Some(x) => {
@@ -71,6 +74,5 @@ fn main() {
     env_logger::init().expect("Failed to initialize logger");
 
     let fs = Vmkp::new();
-    println!("{}", fs.root);
-    // fuse::mount(fs, &"/run/user/1000/vmkp", &[]).expect("Failed to mount filesystem");
+    fuse::mount(fs, &"/run/user/1000/vmkp", &[]).expect("Failed to mount filesystem");
 }
