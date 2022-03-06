@@ -25,7 +25,7 @@ impl EntryData {
     }
 }
 
-pub fn entry_data(input: &[u8], ino: u64, t: Type) -> IResult<&[u8], (u64, EntryData)> {
+pub fn entry_data(input: &[u8], mut ino: u64, t: Type) -> IResult<&[u8], (u64, EntryData)> {
     let mut input = input;
     let data = match t {
         Type::File => {
@@ -39,7 +39,7 @@ pub fn entry_data(input: &[u8], ino: u64, t: Type) -> IResult<&[u8], (u64, Entry
 
         Type::Folder => {
             let mut entries = Vec::new();
-            let mut ino = ino + 1;
+            ino = ino + 1;
             while !input.starts_with(&[255]) {
                 let (new_input, (next_ino, entry)) = entry(ino, input)?;
                 input = new_input;

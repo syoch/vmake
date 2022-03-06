@@ -104,5 +104,5 @@ pub fn entry(ino: u64, input: &[u8]) -> IResult<&[u8], (u64, Entry)> {
 
     let (input, (_, entry_data)) = super::data::entry_data(input, ino, t)?;
 
-    Ok((input, (ino, Entry::new(name, ino, mtime, entry_data))))
+    Ok((input, (ino + 1, Entry::new(name, ino, mtime, entry_data))))
 }
