@@ -6,6 +6,7 @@ use super::entry_type::Type;
 use fuse::FileAttr;
 use fuse::FileType;
 
+use libc::DEBUGFS_MAGIC;
 use nom::IResult;
 
 #[derive(Debug)]
@@ -16,19 +17,32 @@ pub struct Entry {
     pub data: EntryData,
 }
 
-impl Display for Entry {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "[{} {:?}] '{}'",
-            self.attr.ino, self.attr.kind, self.name
-        )?;
+impl Entry {
+    fn brief_to_string(&self) -> String {
+        format!("[{} {:?}] '{}'", self.attr.ino, self.attr.kind, self.name)
+    }
+
+    fn to_string_multiline(&self) -> Vec<String> {
+        let mut lines = Vec::new();
+
+        lines.push(self.brief_to_string());
 
         if let EntryData::Folder(entries) = &self.data {
             for entry in entries {
-                write!(f, "\n  {}", entry)?;
+                let mut entry_lines = entry.to_string_multiline();
+                for line in entry_lines.drain(..) {
+                    lines.push(format!("|   {}", line));
+                }
             }
         }
+
+        lines
+    }
+}
+
+impl Display for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.to_string_multiline().join("\n"))?;
 
         Ok(())
     }
