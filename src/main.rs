@@ -4,17 +4,6 @@ use fuse::*;
 use time::Timespec;
 use vmkp::entry::EntryData;
 
-struct FSEntry {
-    inode: u64,
-    attr: FileAttr,
-    name: String,
-
-    parent: u64,
-    children: Vec<u64>,
-
-    data: Vec<u8>,
-}
-
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 impl Filesystem for vmkp::Vmkp {
@@ -42,6 +31,7 @@ impl Filesystem for vmkp::Vmkp {
             let ent = self.root.resolve_entry(ino).unwrap();
             if let EntryData::Folder(entries) = &ent.data {
                 for entry in entries {
+                    println!("{:?}", entry);
                     reply.add(entry.attr.ino, 0, entry.attr.kind, &entry.name);
                 }
             }
@@ -53,5 +43,6 @@ impl Filesystem for vmkp::Vmkp {
 fn main() {
     env_logger::init().expect("Failed to initialize logger");
 
-    fuse::mount(vmkp::vmkp::Vmkp::new(), &"vmkp", &[]).expect("Failed to mount filesystem");
+    let fs = vmkp::vmkp::Vmkp::new();
+    fuse::mount(fs, &"/run/user/1000/vmkp", &[]).expect("Failed to mount filesystem");
 }

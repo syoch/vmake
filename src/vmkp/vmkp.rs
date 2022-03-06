@@ -15,6 +15,9 @@ impl Vmkp {
         let mut buf = Vec::new();
         file.read_to_end(&mut buf).unwrap();
         let (_, vmkp) = read_vmkp(&buf).unwrap();
+
+        println!("{}", vmkp);
+
         Vmkp { root: vmkp }
     }
 }
