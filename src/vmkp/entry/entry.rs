@@ -6,7 +6,6 @@ use super::entry_type::Type;
 use fuse::FileAttr;
 use fuse::FileType;
 
-use libc::DEBUGFS_MAGIC;
 use nom::IResult;
 
 #[derive(Debug)]
@@ -18,7 +17,7 @@ pub struct Entry {
 }
 
 impl Entry {
-    fn brief_to_string(&self) -> String {
+    pub fn brief_to_string(&self) -> String {
         format!("[{} {:?}] '{}'", self.attr.ino, self.attr.kind, self.name)
     }
 
@@ -84,10 +83,14 @@ impl Entry {
     }
 
     pub fn resolve_entry(&self, inode: u64) -> Option<&Entry> {
+        if self.attr.ino == inode {
+            return Some(self);
+        }
+
         if let EntryData::Folder(entries) = &self.data {
             for entry in entries {
-                if entry.attr.ino == inode {
-                    return Some(entry);
+                if let Some(x) = entry.resolve_entry(inode) {
+                    return Some(x);
                 }
             }
             return None;

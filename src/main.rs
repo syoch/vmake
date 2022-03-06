@@ -1,5 +1,7 @@
 mod vmkp;
 
+use std::os::raw::c_int;
+
 use fuse::*;
 use time::Timespec;
 use vmkp::entry::EntryData;
@@ -7,6 +9,12 @@ use vmkp::entry::EntryData;
 const TTL: Timespec = Timespec { sec: 1, nsec: 0 };
 
 impl Filesystem for vmkp::Vmkp {
+    fn init(&mut self, _req: &Request) -> Result<(), c_int> {
+        println!("Filesystem are");
+        println!("{}", self.root);
+
+        Ok(())
+    }
     fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
         match self.root.resolve_entry(ino) {
             Some(x) => {
@@ -30,9 +38,11 @@ impl Filesystem for vmkp::Vmkp {
         if offset == 0 {
             let ent = self.root.resolve_entry(ino).unwrap();
             if let EntryData::Folder(entries) = &ent.data {
+                let mut i = 0;
                 for entry in entries {
-                    println!("{:?}", entry);
-                    reply.add(entry.attr.ino, 0, entry.attr.kind, &entry.name);
+                    reply.add(entry.attr.ino, i, entry.attr.kind, &entry.name);
+
+                    i += 1;
                 }
             }
         }

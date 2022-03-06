@@ -16,8 +16,6 @@ impl Vmkp {
         file.read_to_end(&mut buf).unwrap();
         let (_, vmkp) = read_vmkp(&buf).unwrap();
 
-        println!("{}", vmkp);
-
         Vmkp { root: vmkp }
     }
 }
@@ -25,7 +23,7 @@ impl Vmkp {
 pub fn read_vmkp(input: &[u8]) -> IResult<&[u8], Entry> {
     let (input, _) = tag("vmkp")(input)?;
 
-    let (input, (_, entry)) = entry(0, input)?;
+    let (input, (_, entry)) = entry(1, input)?;
 
     Ok((input, entry))
 }
