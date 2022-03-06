@@ -34,16 +34,16 @@ impl Filesystem for Vmkp {
                 }
             }
         }
+
+        reply.error(ENOENT);
     }
     fn getattr(&mut self, _req: &fuse::Request, ino: u64, reply: fuse::ReplyAttr) {
         match self.root.resolve_entry(ino) {
             Some(x) => {
                 reply.attr(&TTL, &x.attr);
-                return;
             }
             None => {
                 reply.error(libc::ENOENT);
-                return;
             }
         };
     }
@@ -58,7 +58,10 @@ impl Filesystem for Vmkp {
         if offset == 0 {
             let ent = self.root.resolve_entry(ino).unwrap();
             if let EntryData::Folder(entries) = &ent.data {
-                let mut i = 0;
+                reply.add(ent.attr.ino, 0, FileType::Directory, ".");
+                reply.add(ent.parent_inode, 1, FileType::Directory, "..");
+
+                let mut i = 2;
                 for entry in entries {
                     reply.add(entry.attr.ino, i, entry.attr.kind, &entry.name);
 
