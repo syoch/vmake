@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::data::EntryData;
 use fuse::FileAttr;
 use fuse::FileType;
@@ -8,6 +10,24 @@ pub struct Entry {
     pub attr: FileAttr,
 
     pub data: EntryData,
+}
+
+impl Display for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "[{} {:?}] '{}'",
+            self.attr.ino, self.attr.kind, self.name
+        )?;
+
+        if let EntryData::Folder(entries) = &self.data {
+            for entry in entries {
+                write!(f, "\n  {}", entry)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl Entry {
