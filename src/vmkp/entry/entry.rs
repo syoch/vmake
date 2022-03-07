@@ -6,6 +6,7 @@ use super::entry_type::Type;
 use fuse::FileAttr;
 use fuse::FileType;
 
+pub use nom::number::complete::*;
 use nom::IResult;
 
 #[derive(Debug)]
@@ -33,8 +34,7 @@ impl Entry {
 
         if let EntryData::Folder(entries) = &self.data {
             for entry in entries {
-                let mut entry_lines = entry.to_string_multiline();
-                for line in entry_lines.drain(..) {
+                for line in entry.to_string_multiline() {
                     lines.push(format!("|   {}", line));
                 }
             }

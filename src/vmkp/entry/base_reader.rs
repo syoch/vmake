@@ -1,5 +1,4 @@
 pub use nom::bytes::complete::*;
-pub use nom::number::complete::*;
 use nom::IResult;
 
 pub fn string(input: &[u8]) -> IResult<&[u8], String> {
