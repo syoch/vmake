@@ -30,9 +30,10 @@ pub fn entry_data(input: &[u8], mut ino: u64, t: Type) -> IResult<&[u8], (u64, E
     let self_ino = ino;
     let data = match t {
         Type::File => {
-            let (new_input, data) = take_until("\0")(input)?;
+            let (new_input, data) = varint(input)?;
             input = new_input;
-            let (new_input, _) = take(1usize)(input)?;
+
+            let (new_input, data) = take(data as usize)(input)?;
             input = new_input;
 
             EntryData::new_file(data.to_vec())

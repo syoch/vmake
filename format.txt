@@ -3,7 +3,8 @@ File
   name: zero terminated string
   mtime: u64
 
-  data: zero terminated bytes
+  size: varint
+  data: bytes
 
 Folder
   type: 0x01
