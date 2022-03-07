@@ -1,3 +1,5 @@
+mod vmkp;
+
 use fuse::*;
 use time::Timespec;
 
