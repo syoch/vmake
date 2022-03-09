@@ -15,9 +15,7 @@ fn main() {
     let mut data = Vec::new();
     file.read_to_end(&mut data).expect("Failed to read file");
 
-    let data = &data[4..];
-
-    let (input, vmkp) = vmkp::Entry::read(&*data).unwrap();
+    let (_, vmkp) = vmkp::Vmkp::read(&*data).unwrap();
 
     println!("{:?}", vmkp);
 

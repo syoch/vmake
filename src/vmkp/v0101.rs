@@ -1,4 +1,6 @@
+use super::{Data, Entry, Vmkp};
 use nom::bytes::complete::*;
+use nom::number::complete::*;
 
 pub fn varint(input: &[u8]) -> nom::IResult<&[u8], u64> {
     let mut ret = 0;
@@ -16,16 +18,8 @@ pub fn varint(input: &[u8]) -> nom::IResult<&[u8], u64> {
     }
     Ok((&input[len..], ret))
 }
-
-#[derive(Debug)]
-pub enum Data {
-    File { data: Vec<u8> },
-    Directory { entries: Vec<super::Entry> },
-    RemoteResource { uri: String },
-}
-
 impl Data {
-    pub fn read(t: u8, input: &[u8]) -> nom::IResult<&[u8], Data> {
+    pub fn read_v0101(t: u8, input: &[u8]) -> nom::IResult<&[u8], Data> {
         match t {
             0 => {
                 let (input, length) = varint(input)?;
@@ -43,7 +37,7 @@ impl Data {
 
                 let mut input = input;
                 while !input.starts_with(&[0xFF]) {
-                    let (new_input, entry) = super::Entry::read(input)?;
+                    let (new_input, entry) = super::Entry::read_v0101(input)?;
                     input = new_input;
                     entries.push(entry);
                 }
@@ -64,5 +58,48 @@ impl Data {
             }
             _ => panic!("Unknown data type: {}", t),
         }
+    }
+}
+
+impl Entry {
+    pub fn read_v0101(input: &[u8]) -> nom::IResult<&[u8], Entry> {
+        let (input, t) = u8(input)?;
+        let (input, name) = take_until("\0")(input)?;
+        let (input, _) = take(1usize)(input)?;
+        let (input, mtime) = be_u64(input)?;
+        let (input, data) = Data::read_v0101(t, input)?;
+
+        Ok((
+            input,
+            Entry {
+                name: String::from_utf8(name.to_vec()).unwrap(),
+                mtime,
+                data,
+            },
+        ))
+    }
+}
+
+impl Vmkp {
+    pub fn read(input: &[u8]) -> nom::IResult<&[u8], Vmkp> {
+        let (input, _) = tag("vmkp")(input)?;
+        let (input, version) = be_u16(input)?;
+
+        let (input, _) = be_u16(input)?;
+
+        let mut input = input;
+        let root: Entry;
+        if version == 0x0101 {
+            let tmp = super::v0101::Entry::read_v0101(input)?;
+            input = tmp.0;
+            root = tmp.1;
+        } else {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Tag,
+            )));
+        }
+
+        Ok((input, Vmkp::new(root)))
     }
 }
