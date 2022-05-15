@@ -1,0 +1,20 @@
+Header
+  u32 magic = "vmkp";
+  u16 version;
+  u16 reserved;
+
+  Entry root;
+
+Entry
+  u8 type; // File, Folder, RemoteResource
+  sz name;
+  u64 mtime;
+
+  if type == 0:
+    varint size;
+    u8 data[size];
+  elif type == 1:
+    Entry[] entries;
+    u8 terminator = 0xFF;
+  elif type == 2:
+    sz url

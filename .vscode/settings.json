@@ -1,0 +1,9 @@
+{
+  "saveAndRun": {
+    "commands": [
+      {
+        "cmd": "scripts/run.sh"
+      }
+    ]
+  }
+}
