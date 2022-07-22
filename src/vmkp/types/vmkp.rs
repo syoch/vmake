@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct Vmkp {
-    root: super::Entry,
+    pub root: super::Entry,
 }
 
 impl Vmkp {
